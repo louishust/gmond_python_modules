@@ -1,0 +1,9 @@
+HBase
+===============
+
+Python module for ganglia 3.1.
+
+This module implement some statistic metric which not supported by HBase GangliaContext.
+## AUTHOR
+
+Author: shuai.lou &lt;louis.hust [at] gmail [dot] com&gt;

@@ -1,0 +1,17 @@
+modules {
+  module {
+    name     = "hbase"
+    language = "python"
+  }
+}
+
+collection_group {
+  collect_every = 60
+  time_threshold = 180
+  metric {
+    name = "hbase_total_request_per_second"
+    title = "region server total qps"
+    value_threshold = 0
+  }
+}
+
