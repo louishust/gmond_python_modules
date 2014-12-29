@@ -48,6 +48,10 @@ class UpdateMetricThread(threading.Thread):
         self.metric       = {}
         self.metric["hbase_total_request_per_second"] = 0;
         self.metric["last_hbase_total_requests"] = 0;
+        self.metric["hbase_write_request_per_second"] = 0;
+        self.metric["last_hbase_write_requests"] = 0;
+        self.metric["hbase_read_request_per_second"] = 0;
+        self.metric["last_hbase_read_requests"] = 0;
         self.metric["last_time"] = time.time()
         self.metric["cur_time"] = time.time()
 
@@ -77,16 +81,30 @@ class UpdateMetricThread(threading.Thread):
 
     def update_metric(self):
         try:
+            # get data from jmx
             region_server_json= self.getjmx('localhost', '60030', 'Hadoop:service=HBase,name=RegionServer,sub=Server')
-
             self.metric["cur_hbase_total_requests"] = region_server_json['beans'][0]['totalRequestCount']
+            self.metric["cur_hbase_write_requests"] = region_server_json['beans'][0]['writeRequestCount']
+            self.metric["cur_hbase_read_requests"] = region_server_json['beans'][0]['readRequestCount']
             self.metric["cur_time"] = time.time()
+
+            # set metrics
             self.metric["hbase_total_request_per_second"] = \
                     (self.metric["cur_hbase_total_requests"] - self.metric["last_hbase_total_requests"]) / \
                     (self.metric["cur_time"] - self.metric["last_time"])
 
+            self.metric["hbase_write_request_per_second"] = \
+                    (self.metric["cur_hbase_write_requests"] - self.metric["last_hbase_write_requests"]) / \
+                    (self.metric["cur_time"] - self.metric["last_time"])
+
+            self.metric["hbase_read_request_per_second"] = \
+                    (self.metric["cur_hbase_read_requests"] - self.metric["last_hbase_read_requests"]) / \
+                    (self.metric["cur_time"] - self.metric["last_time"])
+
             # adjust the last values
             self.metric["last_hbase_total_requests"] = self.metric["cur_hbase_total_requests"]
+            self.metric["last_hbase_write_requests"] = self.metric["cur_hbase_write_requests"]
+            self.metric["last_hbase_read_requests"] = self.metric["cur_hbase_read_requests"]
             self.metric["last_time"] = self.metric["cur_time"]
 
         except Exception, e:
@@ -144,6 +162,15 @@ def metric_init(lparams):
     descriptors.append(create_desc(query_skel, {
         "name"       : "hbase_total_request_per_second",
         "description": "total qps", }));
+
+
+    descriptors.append(create_desc(query_skel, {
+        "name"       : "hbase_write_request_per_second",
+        "description": "write qps", }));
+
+    descriptors.append(create_desc(query_skel, {
+        "name"       : "hbase_read_request_per_second",
+        "description": "read qps", }));
 
     return descriptors
 

@@ -13,5 +13,15 @@ collection_group {
     title = "region server total qps"
     value_threshold = 0
   }
+  metric {
+    name = "hbase_write_request_per_second"
+    title = "region server write qps"
+    value_threshold = 0
+  }
+  metric {
+    name = "hbase_read_request_per_second"
+    title = "region server read qps"
+    value_threshold = 0
+  }
 }
 
