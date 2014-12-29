@@ -6,8 +6,8 @@ modules {
 }
 
 collection_group {
-  collect_every = 60
-  time_threshold = 180
+  collect_every = 10
+  time_threshold = 60
   metric {
     name = "hbase_total_request_per_second"
     title = "region server total qps"

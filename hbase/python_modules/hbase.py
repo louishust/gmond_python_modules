@@ -46,6 +46,10 @@ class UpdateMetricThread(threading.Thread):
         self.shuttingdown = False
         self.refresh_rate = 10
         self.metric       = {}
+        self.metric["hbase_total_request_per_second"] = 0;
+        self.metric["last_hbase_total_requests"] = 0;
+        self.metric["last_time"] = time.time()
+        self.metric["cur_time"] = time.time()
 
     def shutdown(self):
         self.shuttingdown = True
@@ -77,14 +81,9 @@ class UpdateMetricThread(threading.Thread):
 
             self.metric["cur_hbase_total_requests"] = region_server_json['beans'][0]['totalRequestCount']
             self.metric["cur_time"] = time.time()
-            if 'metric_inited' in self.metric:
-                self.metric["hbase_total_request_per_second"] =  \
+            self.metric["hbase_total_request_per_second"] = \
                     (self.metric["cur_hbase_total_requests"] - self.metric["last_hbase_total_requests"]) / \
                     (self.metric["cur_time"] - self.metric["last_time"])
-            else:
-                self.metric["hbase_total_request_per_second"] = 0;
-                self.metric["cur_time"] = time.time()
-                self.metric["metric_inited"] = 1
 
             # adjust the last values
             self.metric["last_hbase_total_requests"] = self.metric["cur_hbase_total_requests"]
@@ -110,7 +109,7 @@ def create_desc(skel, prop):
     return d
 
 def metric_of(name):
-    return _Worker_Thread.metric_of(name)
+    return int(_Worker_Thread.metric_of(name))
 
 def metric_cleanup():
     _Worker_Thread.shutdown()
@@ -118,8 +117,8 @@ def metric_cleanup():
 def metric_init(lparams):
     """Initialize metric descriptors"""
 
-    _Worker_Thread.start()
     _Worker_Thread.update_metric()
+    _Worker_Thread.start()
 
     # initialize skeleton of descriptors
     Desc_Skel = {
@@ -136,8 +135,8 @@ def metric_init(lparams):
 
     query_skel = create_desc(Desc_Skel, {
         "name"       : "XXX",
-        "units"      : "query/sec",
-        "slope"      : "positive",
+        "units"      : "request/sec",
+        "slope"      : "both",
         "format"     : "%d",
         "description": "XXX",
         })
